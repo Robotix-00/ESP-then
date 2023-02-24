@@ -38,6 +38,7 @@
                 sudo iw $interface set monitor none
                 sudo ip link set $interface up
                 echo "$interface is now in monitor mode";
+                export interface=$interface;
               else
                 echo "no interface put into monitor mode";
               fi;

@@ -3,7 +3,7 @@
 #include <esp_now.h>
 
 uint8_t broadcastAddress[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-//uint8_t broadcastAddress[] = {0xa2, 0x44, 0x4a, 0xe4, 0xb6, 0x74};
+/* uint8_t broadcastAddress[] = {0xa2, 0x44, 0x4a, 0xe4, 0xb6, 0x74}; */
 
 
 
@@ -43,6 +43,12 @@ void setup()
   memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 1;
   peerInfo.encrypt = false;
+
+  // Add peer
+  if (esp_now_add_peer(&peerInfo) != ESP_OK){
+    Serial.println("Failed to add peer");
+    return;
+  }
 }
 
 void loop()

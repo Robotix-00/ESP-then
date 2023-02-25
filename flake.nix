@@ -29,8 +29,8 @@
             shellHook = ''
               interface=$(
                 {
-                  (iw dev | awk '$1=="Interface"{print $2}')
                   echo "none"
+                  (iw dev | awk '$1=="Interface"{print $2}')
                 } | fzf)
 
               if [ "$interface" != "none" ]; then

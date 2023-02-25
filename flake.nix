@@ -23,6 +23,8 @@
             buildInputs = with pkgs; [
               cargo
               rustc
+              clippy
+              rustfmt
               fzf
             ];
 

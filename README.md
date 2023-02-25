@@ -1,4 +1,6 @@
 # ESP-then
+![CI](https://github.com/Robotix-00/ESP-then/actions/workflows/ci.yaml/badge.svg)
+
 > **STATUS**: WIP, currently not usable
 
 ESP-then is a rust implementation of the ESP-now wireless protocol for microcontrollers (like the ESP32)

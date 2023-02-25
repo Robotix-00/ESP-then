@@ -1,4 +1,4 @@
-use esp_then::ESPNOW;
+use espthen::ESPNOW;
 
 use std::env;
 

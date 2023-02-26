@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 /// # Examples
 /// `ESPNOW.parse` takes an u8 array and returns a Result-Tupel of the espnow header and the
 /// remaining data
@@ -8,62 +10,63 @@
 
 #[derive(Debug)]
 pub struct ESPNOW {
-    // MAC header
-    mac: [u8; 24],
-
     // category code, set to 127 (vendorspecific)
-    catcode: u8,
+    pub catcode: u8,
 
     // organisation identifier, set to 0x18FE34
-    orga: [u8; 3],
+    pub orga: [u8; 3],
 
     // padding to prevent replay/relay attacks
-    padding: [u8; 4],
+    pub padding: [u8; 4],
 
     // element id, set to 221 (vendorspecific)
-    element_id: u8,
+    pub element_id: u8,
 
     // length of orgid, ptype, version and following data
-    length: u8,
+    pub length: u8,
 
     // second orga code (equal to first)
-    orga2: [u8; 3],
+    pub orga2: [u8; 3],
 
     // packet type, set to 0x04
-    ptype: u8,
+    pub ptype: u8,
 
     // version of esp-now
-    version: u8,
+    pub version: u8,
 }
 
 impl ESPNOW {
+    /// Returns a result of an espnow packet
+    ///
+    /// # Arguments
+    /// * `data` - Binary data
     pub fn parse(data: &[u8]) -> Result<(ESPNOW, &[u8]), &str> {
-        if data.len() > 38 {
+        if data.len() > 16 {
             let packet = ESPNOW {
-                mac: data[..24].try_into().expect("valid slice size"),
-                catcode: data[24],
-                orga: data[25..28].try_into().expect("valid slice size"),
-                padding: data[28..32].try_into().expect("valid slice size"),
-                element_id: data[32],
-                length: data[33],
-                orga2: data[34..37].try_into().expect("valid slice size"),
-                ptype: data[37],
-                version: data[38],
+                catcode: data[0],
+                orga: data[1..4].try_into().expect("valid slice size"),
+                padding: data[4..8].try_into().expect("valid slice size"),
+                element_id: data[8],
+                length: data[9],
+                orga2: data[10..13].try_into().expect("valid slice size"),
+                ptype: data[13],
+                version: data[14],
             };
 
-            if packet.isValid() {
+            if packet.is_valid() {
                 return Ok({
                     // -5 bytes for orgid (3), ptype (1) and version (1)
-                    let end: usize = usize::from(39 - 5 + packet.length);
+                    let end: usize = usize::from(10 + packet.length);
 
-                    (packet, &data[38..end])
+                    (packet, &data[16..end])
                 });
             }
         }
         Err("not an espnow packet")
     }
 
-    fn isValid(&self) -> bool {
+    /// Returns true if the data is a valid ESP-now packet
+    fn is_valid(&self) -> bool {
         self.ptype == 0x04
             && self.orga == self.orga2
             && self.orga == [0x18, 0xfe, 0x34]

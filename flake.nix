@@ -10,11 +10,16 @@
   outputs = inputs: with inputs;
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowBroken = true;
+          config.allowUnsupportedSystem = true;
+          overlays = [ (import rust-overlay) ];
+        };
 
       in rec {
-        packages = {
-        };
+        packages.default = pkgs.callPackage ./. {};
+        checks.default = packages.default;
 
         devShells = rec {
           default = rust;

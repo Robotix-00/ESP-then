@@ -1,5 +1,5 @@
 #![allow(unused)]
-use espthen::ESPNOW;
+use espthen::EspNow;
 
 use std::env;
 
@@ -41,7 +41,7 @@ fn main() {
                 if let Ok((radio, etherdata)) = Radiotap::parse(&packet) {
                     // FIXME: espnow doesnt use the default mac header
                     if let Some(ethernet) = EthernetPacket::new(&etherdata) {
-                        if let Ok((esp, data)) = ESPNOW::parse(ethernet.payload()) {
+                        if let Ok((esp, data)) = EspNow::parse(ethernet.payload()) {
                             println!("{:?}, {:?}, {:?}", radio, ethernet, esp);
                         }
                     }

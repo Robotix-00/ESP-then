@@ -1,15 +1,15 @@
-#![doc = include_str!("../README.md")]
+#![allow(rustdoc::bare_urls)]
+#![doc = include_str!("./../README.md")]
 
 /// # Examples
-/// `ESPNOW.parse` takes an u8 array and returns a Result-Tupel of the espnow header and the
-/// remaining data
+/// `ESPNOW` is a representation of an espnow-header packet
 ///
 /// ```rust
 /// assert_eq!( 2 + 2, 4)
 /// ```
 
 #[derive(Debug)]
-pub struct ESPNOW {
+pub struct EspNow {
     // category code, set to 127 (vendorspecific)
     pub catcode: u8,
 
@@ -35,14 +35,12 @@ pub struct ESPNOW {
     pub version: u8,
 }
 
-impl ESPNOW {
-    /// Returns a result of an espnow packet
-    ///
-    /// # Arguments
-    /// * `data` - Binary data
-    pub fn parse(data: &[u8]) -> Result<(ESPNOW, &[u8]), &str> {
+impl EspNow {
+    /// Returns a result with an espnow-header packet and
+    /// the remaining payload as a byte array
+    pub fn parse(data: &[u8]) -> Result<(EspNow, &[u8]), &str> {
         if data.len() > 16 {
-            let packet = ESPNOW {
+            let packet = EspNow {
                 catcode: data[0],
                 orga: data[1..4].try_into().expect("valid slice size"),
                 padding: data[4..8].try_into().expect("valid slice size"),
@@ -77,7 +75,7 @@ impl ESPNOW {
 
 #[cfg(test)]
 mod tests {
-    use super::ESPNOW;
+    use super::EspNow;
 
     // test if example packet can be parsed
     #[test]
@@ -90,7 +88,7 @@ mod tests {
             0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x3, 0x0, 0x0, 0x0, 0x9A, 0x99, 0x99,
             0x3F, 0x0, 0x0, 0x0, 0x0,
         ];
-        ESPNOW::parse(&data)?;
+        EspNow::parse(&data)?;
         Ok(())
     }
 }

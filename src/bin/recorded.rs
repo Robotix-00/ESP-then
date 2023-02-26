@@ -1,5 +1,5 @@
 #![allow(unused)]
-use espthen::ESPNOW;
+use espthen::EspNow;
 
 extern crate pnet;
 use pnet::datalink::Channel::Ethernet;
@@ -29,7 +29,7 @@ fn main() {
     let (packet, etherdata) = Radiotap::parse(&data).unwrap();
     let ethernet = EthernetPacket::new(&etherdata).unwrap();
 
-    let (esp, data) = ESPNOW::parse(&ethernet.payload()[10..]).unwrap();
+    let (esp, data) = EspNow::parse(&ethernet.payload()[10..]).unwrap();
     println!("{:?}", esp);
     println!("{:?}", data);
 }

@@ -5,7 +5,11 @@
 // use pnet_macros_support::types::*;
 use pnet_macros::packet;
 use pnet_macros_support::types::u32le;
+use pnet_macros_support::types::u16be;
 use pnet_macros_support::packet::PrimitiveValues;
+use pnet::util::MacAddr;
+
+use core::fmt;
 
 
 /// # Examples
@@ -15,26 +19,62 @@ use pnet_macros_support::packet::PrimitiveValues;
 /// assert_eq!( 2 + 2, 4)
 /// ```
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
 pub struct OrganisationCode(u8, u8, u8);
 
 impl OrganisationCode {
-    pub fn new(val1: u8, val2: u8, val3: u8) -> OrganisationCode {
-        OrganisationCode(val1, val2, val3)
+    pub fn new(a: u8, b: u8, c: u8) -> OrganisationCode {
+        OrganisationCode(a, b, c)
     }
 }
 
 impl PrimitiveValues for OrganisationCode {
     type T = (u8,u8,u8);
-    fn to_primitive_values(&self) -> (u8,u8,u8) {
+    fn to_primitive_values(&self) -> Self::T {
         (self.0,self.1, self.2)
     }
 }
 
+impl PartialEq<u32> for OrganisationCode {
+    fn eq(&self, other: &u32) -> bool {
+        u32::from(*self) == *other
+    }
+}
 
+impl From<OrganisationCode> for u32 {
+    fn from(orga: OrganisationCode) -> Self {
+        ((orga.0 as u32) << 16) +
+        ((orga.1 as u32) << 8) +
+         (orga.2 as u32)
+    }
+}
+
+impl fmt::Debug for OrganisationCode {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            fmt,
+            "{:X}",
+            u32::from(*self)
+        )
+    }
+}
 
 #[packet]
 pub struct EspNow {
+    pub framectrl: u16be,
+    pub dura_id: u16be,
+
+    #[construct_with(u8, u8, u8, u8, u8, u8)]
+    pub addr1: MacAddr,
+
+    #[construct_with(u8, u8, u8, u8, u8, u8)]
+    pub addr2: MacAddr,
+
+    #[construct_with(u8, u8, u8, u8, u8, u8)]
+    pub addr3: MacAddr,
+
+    pub sequencectrl: u16be,
+
     // category code, set to 127 (vendorspecific)
     pub catcode: u8,
 
@@ -67,7 +107,7 @@ pub struct EspNow {
     pub data: Vec<u8>,
 
 
-    pub mac: u32le,
+    pub cksum: u32le,
 }
 
 impl EspNow {
@@ -75,7 +115,7 @@ impl EspNow {
     pub fn is_valid(&self) -> bool {
         self.ptype == 0x04
             && self.orga == self.orga2
-            // && self.orga == 0x18fe34
+            && self.orga == OrganisationCode::new(0x18, 0xFE, 0x34)
             && self.catcode == 127
             && self.element_id == 221
     }

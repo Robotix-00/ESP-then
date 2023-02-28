@@ -36,8 +36,8 @@ fn main() {
     ];
     let packet = Radiotap::from_bytes(&data).unwrap();
 
-    let mac_size = packet.header.length+24;
 
-    let esp = EspNowPacket::new(&data[mac_size..]).unwrap();
-    println!("{:?}, payload {:?}", esp, esp.payload());
+    let esp = EspNowPacket::new(&data[packet.header.length..]).unwrap();
+
+    println!("{:?}, payload {:02x?}", esp, esp.payload());
 }

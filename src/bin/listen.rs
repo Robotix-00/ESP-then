@@ -1,5 +1,6 @@
 #![allow(unused)]
 use espthen::EspNowPacket;
+use espthen::MacPacket;
 
 use std::env;
 
@@ -38,11 +39,12 @@ fn main() {
     loop {
         match rx.next() {
             Ok(packet) => {
-                if let Ok((radio, etherdata)) = Radiotap::parse(&packet) {
-                    // FIXME: espnow doesnt use the default mac header
-                    if let Some(ethernet) = EthernetPacket::new(&etherdata) {
-                        if let Some(esp) = EspNowPacket::new(ethernet.payload()) {
-                            println!("{:?}, {:?}, {:?} {:?}", radio, ethernet, esp, esp.payload());
+                if let Ok(radio) = Radiotap::from_bytes(&packet) {
+                    if let Some(mac) = MacPacket::new(&packet[radio.header.length..]) {
+                        if let Some(esp) = EspNowPacket::new(mac.payload()) {
+                            if (esp.get_catcode() == 127) {
+                                println!("{:?}, {:?}, {:?} {:?}", radio, mac, esp, esp.payload());
+                            }
                         }
                     }
                 }

@@ -1,11 +1,8 @@
 #![allow(rustdoc::bare_urls)]
 #![doc = include_str!("./../README.md")]
 
-// use pnet_macros::packet;
-// use pnet_macros_support::types::*;
 use pnet_macros::packet;
-use pnet_macros_support::types::u32le;
-use pnet_macros_support::types::u16be;
+use pnet_macros_support::types::{u16le, u32le};
 use pnet_macros_support::packet::PrimitiveValues;
 use pnet::util::MacAddr;
 
@@ -58,11 +55,10 @@ impl fmt::Debug for OrganisationCode {
         )
     }
 }
-
 #[packet]
-pub struct EspNow {
-    pub framectrl: u16be,
-    pub dura_id: u16be,
+pub struct Mac {
+    pub framectrl: u16le,
+    pub dura_id: u16le,
 
     #[construct_with(u8, u8, u8, u8, u8, u8)]
     pub addr1: MacAddr,
@@ -73,8 +69,21 @@ pub struct EspNow {
     #[construct_with(u8, u8, u8, u8, u8, u8)]
     pub addr3: MacAddr,
 
-    pub sequencectrl: u16be,
+    pub sequencectrl: u16le,
 
+    #[payload]
+    #[length_fn = "payload_length"]
+    pub payload: Vec<u8>,
+
+    pub cksum: u32le,
+}
+
+fn payload_length<'a>(mac: &MacPacket<'a>) -> usize {
+    usize::try_from(mac.packet.len()-28).unwrap()
+}
+
+#[packet]
+pub struct EspNow {
     // category code, set to 127 (vendorspecific)
     pub catcode: u8,
 
@@ -83,7 +92,6 @@ pub struct EspNow {
     pub orga: OrganisationCode,
 
     // padding to prevent replay/relay attacks
-    // #[construct_with(u8, u8, u8, u8)]
     pub padding: u32le,
 
     // element id, set to 221 (vendorspecific)
@@ -102,12 +110,9 @@ pub struct EspNow {
     // version of esp-now
     pub version: u8,
 
-    #[length = "length - 5"]
+    #[length = "length-5"]
     #[payload]
     pub data: Vec<u8>,
-
-
-    pub cksum: u32le,
 }
 
 impl EspNow {
@@ -128,15 +133,14 @@ mod tests {
     // test if example packet can be parsed
     #[test]
     fn happy_path() {
-        let data: &[u8] = &[
-            // 0xD0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x10, 0x52, 0x1C, 0x67, 0xD9,
-            // 0xC4, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC0, 0x1,
+        EspNowPacket::new(&[
+            0xD0, 0x0, 0x0, 0x0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x10, 0x52, 0x1C, 0x67, 0xD9,
+            0xC4, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC0, 0x1,
             0x7F, 0x18, 0xFE, 0x34, 0xD, 0x5F,
             0x70, 0x4D, 0xDD, 0x31, 0x18, 0xFE, 0x34, 0x4, 0x1, 0x54, 0x48, 0x49, 0x53, 0x20, 0x49,
             0x53, 0x20, 0x41, 0x20, 0x43, 0x48, 0x41, 0x52, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
             0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x3, 0x0, 0x0, 0x0, 0x9A, 0x99, 0x99,
             0x3F, 0x0, 0x0, 0x0, 0x0,
-        ];
-        EspNowPacket::new(data).unwrap();
+        ]).unwrap();
     }
 }

@@ -1,5 +1,5 @@
 #![allow(unused)]
-use espthen::EspNowPacket;
+use espthen::{EspNowPacket, MacPacket};
 
 extern crate radiotap;
 use radiotap::Radiotap;
@@ -34,10 +34,13 @@ fn main() {
         // MAC check
         0xcb, 0xe5, 0xca, 0x52,
     ];
-    let packet = Radiotap::from_bytes(&data).unwrap();
+    let radio = Radiotap::from_bytes(&data).unwrap();
+    println!("{:?}", radio);
 
 
-    let esp = EspNowPacket::new(&data[packet.header.length..]).unwrap();
+    let mac = MacPacket::new(&data[radio.header.length..]).unwrap();
+    println!("{:?}", mac);
 
-    println!("{:?}, payload {:02x?}", esp, esp.payload());
+    let esp = EspNowPacket::new(mac.payload()).unwrap();
+    println!("{:?}\npayload {:02x?}", esp, esp.payload());
 }
